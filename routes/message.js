@@ -4,7 +4,7 @@ module.exports = function(app, io, userList, recentMessages) {
   var content = require('../lib/web-remix');
 
   var getMessage = function(req) {
-    if(req.body) {
+    if (req.body) {
       var datetime = new Date();
       var oldNickname = req.session.nickname;
       var nickname = content.getNickName(req.body.message);
@@ -12,14 +12,14 @@ module.exports = function(app, io, userList, recentMessages) {
       var isAction = false;
       var actionType = '';
 
-      if(nickname.length > 0) {
+      if (nickname.length > 0) {
         /* Right now multiple people can have the same username, so if we remove,
          * then we risk removing their nick?
         */ 
-        if(oldNickname !== 'Anonymous') {
+        if (oldNickname !== 'Anonymous') {
           userList.splice(userList.indexOf(oldNickname), 1);
         }
-        if(userList.indexOf(nickname) === -1) {
+        if (userList.indexOf(nickname) === -1) {
           userList.push(nickname.toLowerCase());
         }
         io.sockets.emit('userlist', userList);
@@ -29,14 +29,14 @@ module.exports = function(app, io, userList, recentMessages) {
         actionType = 'nick';
       }
 
-      if(!req.session.nickname) {
+      if (!req.session.nickname) {
         req.session.nickname = 'Anonymous';
       } 
 
       // if this is a /me prepend with the nick
       var meMatch = /^(\s\/me\s)/i;
 
-      if(message.match(meMatch)) {
+      if (message.match(meMatch)) {
         message = '<em>' + req.session.nickname + ' ' + message.replace(meMatch, '') + '</em>';
         isAction = true;
         actionType = 'activity';
@@ -62,6 +62,17 @@ module.exports = function(app, io, userList, recentMessages) {
     }
   };
 
+  // Broadcast a message to a particular channel
+  var broadcastToChannel = function(message, channel) {
+    if (channel.length > 0) {
+      var channel = channel.replace(/^A-Za-z0-9_/, '_');
+      io.sockets.emit('channel_' + channel, message);
+      console.log('channel_' + channel);
+    } else {
+      io.sockets.emit('channel_', message);
+    }
+  }
+
   // Get recent messages
   app.get("/recent", function(req, res) {
     res.json(recentMessages);
@@ -72,11 +83,11 @@ module.exports = function(app, io, userList, recentMessages) {
     var message = getMessage(req);
 
     recentMessages.push(message);
-    if(recentMessages.length > 20) {
+    if (recentMessages.length > 20) {
       recentMessages.shift();
     }
 
-    io.sockets.emit('message', message);
+    broadcastToChannel(message, req.body.channel);
     res.json(message);
   });
 };

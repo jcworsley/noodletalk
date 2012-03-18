@@ -6,8 +6,8 @@ function TabComplete(userList) {
   var currentCompare;
 
   function findNext(){
-    for(var i=userListIndex + 1, l=userList.length; i<l; ++i){
-      if(userList[i].indexOf(currentCompare) === 0){
+    for (var i=userListIndex + 1, l=userList.length; i<l; ++i) {
+      if (userList[i].indexOf(currentCompare) === 0) {
         userListIndex = i;
         input.value = userList[i].toLowerCase() + ': ';
         break;
@@ -21,9 +21,9 @@ function TabComplete(userList) {
   };
 
   // if a user hasn't logged in, the input doesn't exist, so we need to check for it.
-  if(input) {
+  if (input) {
     input.addEventListener('keydown', function(e) {
-      if(e.keyCode === 9){ 
+      if (e.keyCode === 9) { 
         e.preventDefault();
 
         if(userListIndex === -1){
@@ -32,7 +32,7 @@ function TabComplete(userList) {
 
         var oldIndex = userListIndex;
         findNext();
-        if(userListIndex === oldIndex){
+        if (userListIndex === oldIndex) {
           userListIndex = -1;
           findNext();
         }

@@ -4,7 +4,7 @@ module.exports = function(app, settings, io, userList) {
   // Login
   app.post("/login", function(req, res) {
     auth.verify(req, settings, function(error, email) {
-      if(email) {
+      if (email) {
         res.cookie('rememberme', 'yes', {
           secure: settings.options.secureCookie,
           httpOnly: true

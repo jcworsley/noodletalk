@@ -1,6 +1,14 @@
 $(function() {
-  var socket = io.connect('http://' + document.domain),
-      messagesUnread = 0,
+  var channelUrl = document.location.href.split('/');
+  var channel = channelUrl[channelUrl.length - 1].replace(/\s/, '');
+  if(channel.length > 0) {
+    var channel = channel.replace(/^A-Za-z0-9_/, '_');
+    var socket = io.connect('http://' + document.domain + '/c/' + channel);
+  } else {
+    var socket = io.connect('http://' + document.domain);
+  }
+
+  var messagesUnread = 0,
       currentNickname = 'Anonymous',
       userList = ['Anonymous'],
       tabComplete = new TabComplete(userList),
@@ -11,18 +19,18 @@ $(function() {
     // Update the message
     var message = $.trim(data.message);
 
-    if(message.length > 0 && $('ol li[data-created="' + data.created + '"]').length === 0) {
-      if(currentNickname !== data.nickname){
+    if (message.length > 0 && $('ol li[data-created="' + data.created + '"]').length === 0) {
+      if (currentNickname !== data.nickname){
         currentNickname = data.nickname;
       }
 
-      if(data.is_action) {
+      if (data.is_action) {
         var msg = $('<li class="action font' + data.font + '" data-created="' + data.created +
                     '"><p></p><a href="#" class="delete">delete</a></li>');
         msg.find('p').html(message);
 
         // if this is a nick change, set the nick in the dom for the user
-        if(data.action_type === 'nick' && myPost) {
+        if (data.action_type === 'nick' && myPost) {
           $('body').data('nick', data.nickname.replace(/\s/, ''));
           myPost = false;
         }
@@ -31,9 +39,9 @@ $(function() {
         var highlight = '';
         var nickReference = data.message.split(': ')[0];
 
-        if(nickReference) {
+        if (nickReference) {
           nickReference = nickReference.replace(/\s/, '');
-          if(nickReference === $('body').data('nick') && !myPost){
+          if (nickReference === $('body').data('nick') && !myPost){
             highlight = 'nick-highlight';
           }
         }
@@ -72,7 +80,7 @@ $(function() {
 
   $('#login').click(function() {
     navigator.id.getVerifiedEmail(function(assertion) {
-      if(assertion) {
+      if (assertion) {
         var loginForm = $('#login-form');
 
         loginForm.find('input').val(assertion);
@@ -100,11 +108,11 @@ $(function() {
     var clearMatcher = /^(\/clear)/i;
 
     // if this is a help trigger, open up the help window
-    if(self.find('input').val().match(helpMatcher)) {
+    if (self.find('input').val().match(helpMatcher)) {
       $('#help').fadeIn();
       self.find('input').val('');
     // if this is a clear trigger, clear all messages
-    } else if(self.find('input').val().match(clearMatcher)) {
+    } else if (self.find('input').val().match(clearMatcher)) {
       $('ol li').remove();
       self.find('input').val('');
 
@@ -116,7 +124,7 @@ $(function() {
         url: self.attr('action'),
         data: self.serialize(),
         success: function(data) {
-          $('form input').val('');
+          $('form input[name="message"]').val('');
           document.title = 'Noodle Talk';
           messagesUnread = 0;
         },
@@ -134,7 +142,8 @@ $(function() {
     socket.on('userlist', function (data) {
       userList = data;
     });
-    socket.on('message', function (data) {
+    socket.on('channel_' + channel, function (data) {
+      console.log('got here');
       updateMessage(data);
     });
   });

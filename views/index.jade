@@ -2,6 +2,7 @@
   if session.email
     form(method='post', action='/message', autocomplete='off', class='font#{session.userFont}')
       input(type='text', name='message', placeholder='enter your message here')
+      input(type='text', name='channel', value='#{channel}')
       button(type='submit') add
 
 ol

@@ -1,6 +1,6 @@
 // Date formatting functions
 var padTimeDigit = function(digit) {
-  if(digit < 10) {
+  if (digit < 10) {
     return '0' + digit;
   }
   return digit;
